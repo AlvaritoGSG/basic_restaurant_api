@@ -1,0 +1,48 @@
+Project basic_restaurant {
+  database_type: 'mySQL'
+  Note: 'Flujo de caja (no contable) básico, para un restaurante'
+}
+
+Table users {
+  id integer [primary key, increment]
+  first_name varchar(50) not null unique
+  last_name varchar(50) not null unique
+  email varchar(100) not null unique
+  phone varchar(15) not null unique
+  username varchar(50) not null unique
+  password varchar(255) not null
+  //role varchar(20) [check: "role IN ('admin', 'operator')"]
+  role enum('admin', 'operator') [default: 'admin']
+  created_at timestamp
+}
+
+Table accounting_accounts {
+  id integer [primary key increment]
+  account_code varchar(10) [not null, unique]
+  account_group enum('Activos', 'Pasivos', 'Patrimonio', 'Ingresos', 'Gastos') [not null]
+  account_subgroup varchar(100) [not null]
+  account_name varchar(250) [not null]
+  normal_balance enum('debit', 'credit')
+  description text
+  is_parent_account boolean [default: false]
+  level enum(group, subgroup, account) [not null]
+  currency varchar(3) [not null]
+  status boolean [default: true]
+  transaction_id integer
+  created_at timestamp
+}
+
+Table journal_entries {
+  id integer [primary key, increment]
+  accounting_accounts_id integer [not null]
+  entry_date date [not null]
+  description varchar(500)
+  debit decimal(14,6) [default: 0.00]
+  credit decimal(14,6) [default: 0.00]
+  reference_transaction varchar(50)
+  currency varchar(3) [not null]
+  exchange_rate decimal(10,6)
+  created_at timestamp
+}
+
+Ref: journal_entries.accounting_accounts_id > accounting_accounts.id // many-to-one
