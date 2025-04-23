@@ -1,0 +1,145 @@
+Project ERP_Restaurante {
+  database_type: "PostgreSQL"
+}
+
+// Personas y sus roles
+Table personas {
+  id int [pk, increment]
+  tipo varchar(10) // 'natural' o 'juridica'
+  nombre varchar
+  documento_identidad varchar
+  direccion varchar
+  telefono varchar
+  email varchar
+  created_at datetime
+  updated_at datetime
+}
+
+Table usuarios {
+  id int [pk, increment]
+  persona_id int [ref: > personas.id]
+  username varchar
+  password varchar
+  rol varchar // 'admin', 'vendedor'
+  activo boolean
+}
+
+Table empleados {
+  id int [pk, increment]
+  persona_id int [ref: > personas.id]
+  puesto varchar
+  salario decimal
+  usuario_id int [ref: > usuarios.id]
+}
+
+Table clientes {
+  id int [pk, increment]
+  persona_id int [ref: > personas.id]
+  tipo_cliente varchar
+}
+
+Table proveedores {
+  id int [pk, increment]
+  persona_id int [ref: > personas.id]
+  tipo_proveedor varchar
+}
+
+// Cuentas contables (catálogo de cuentas)
+Table cuentas_contables {
+  id int [pk, increment]
+  codigo varchar
+  nombre varchar
+  tipo varchar // 'activo', 'pasivo', 'ingreso', 'gasto', 'patrimonio'
+  padre_id int [ref: > cuentas_contables.id, null]
+}
+
+Table asientos_contables {
+  id int [pk, increment]
+  fecha date
+  descripcion text
+  origen_tipo varchar // 'venta', 'compra', 'gasto', 'arqueo'
+  origen_id int
+}
+
+Table movimientos_contables {
+  id int [pk, increment]
+  asiento_contable_id int [ref: > asientos_contables.id]
+  cuenta_contable_id int [ref: > cuentas_contables.id]
+  debe decimal
+  haber decimal
+  descripcion text
+}
+
+// Productos e inventario
+Table productos {
+  id int [pk, increment]
+  nombre varchar
+  descripcion text
+  precio decimal
+  stock int
+  cuenta_ingreso_id int [ref: > cuentas_contables.id]
+  cuenta_inventario_id int [ref: > cuentas_contables.id]
+}
+
+// Ventas y sus detalles
+Table ventas {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  cliente_id int [ref: > clientes.id, null]
+  fecha date
+  total decimal
+  asiento_contable_id int [ref: > asientos_contables.id, null]
+  cierre_diario_id int [ref: > cierres_diarios.id]
+}
+
+Table detalles_ventas {
+  id int [pk, increment]
+  venta_id int [ref: > ventas.id]
+  producto_id int [ref: > productos.id]
+  cantidad int
+  precio_unitario decimal
+  subtotal decimal
+}
+
+// Compras y sus detalles
+Table compras {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  proveedor_id int [ref: > proveedores.id]
+  fecha date
+  total decimal
+  asiento_contable_id int [ref: > asientos_contables.id, null]
+}
+
+Table detalles_compras {
+  id int [pk, increment]
+  compra_id int [ref: > compras.id]
+  producto_id int [ref: > productos.id]
+  cantidad int
+  precio_unitario decimal
+  subtotal decimal
+}
+
+// Gastos
+Table gastos {
+  id int [pk, increment]
+  descripcion text
+  usuario_id int [ref: > usuarios.id]
+  asiento_contable_id int [ref: > asientos_contables.id, null]
+  cuenta_gasto_id int [ref: > cuentas_contables.id]
+  fecha date
+  total decimal
+}
+
+// Cierres diarios de caja
+Table cierres_diarios {
+  id int [pk, increment]
+  usuario_id int [ref: > usuarios.id]
+  fecha date
+  saldo_inicial decimal
+  ingresos decimal
+  egresos decimal
+  saldo_final decimal
+  observaciones text
+  created_at datetime
+}
